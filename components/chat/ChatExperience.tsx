@@ -13,8 +13,9 @@ import {
   StreamingDots,
   ReplanningIndicator,
 } from "@/components/chat/StatusIndicators";
-import { useReplan, formatReplanPrompt } from "@/lib/hooks/useReplan";
+import { formatReplanPrompt } from "@/lib/hooks/useReplan";
 import {
+  normalizePersistedMessages,
   toConvexSafeSnapshot,
   type PersistedChatSession,
   type PersistedChatSnapshot,
@@ -47,13 +48,17 @@ export function ChatExperience({
 }: ChatExperienceProps) {
   const canPersist = Boolean(activeSessionId && onSaveSession);
   const [controlValues, setControlValues] = useState<Record<string, unknown>>({});
+  const [committedControlValues, setCommittedControlValues] = useState<Record<string, unknown>>({});
+  const [pendingControlChanges, setPendingControlChanges] = useState<Record<string, unknown>>({});
   const [isReplanning, setIsReplanning] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [dismissedError, setDismissedError] = useState<string | null>(null);
   const [hasHydratedSession, setHasHydratedSession] = useState(!activeSessionId);
+  const [showLandingTransition, setShowLandingTransition] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef(new Map<string, HTMLDivElement>());
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hydratedSessionIdRef = useRef<string | null>(null);
 
   const { messages, setMessages, status, sendMessage, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/plan-trip" }),
@@ -61,23 +66,33 @@ export function ChatExperience({
 
   const isLoading = status === "submitted" || status === "streaming";
   const isThinking = status === "submitted";
-  const isChat = messages.length > 0;
+  const isChat = messages.length > 0 || showLandingTransition;
+  const hasPendingControlChanges = Object.keys(pendingControlChanges).length > 0;
 
   useEffect(() => {
     startTransition(() => {
       setHasHydratedSession(!activeSessionId);
     });
+    hydratedSessionIdRef.current = null;
   }, [activeSessionId]);
 
   useEffect(() => {
     if (!activeSessionReady) return;
+    if (activeSessionId && hydratedSessionIdRef.current === activeSessionId) return;
+
+    const normalizedMessages = normalizePersistedMessages(activeSession?.messages);
 
     startTransition(() => {
-      setMessages((activeSession?.messages ?? []) as Parameters<typeof setMessages>[0]);
+      setMessages(normalizedMessages as Parameters<typeof setMessages>[0]);
       setControlValues(activeSession?.controlValues ?? {});
+      setCommittedControlValues(activeSession?.controlValues ?? {});
+      setPendingControlChanges({});
       setHasHydratedSession(true);
     });
+
+    hydratedSessionIdRef.current = activeSessionId ?? null;
   }, [
+    activeSessionId,
     activeSession?.sessionId,
     activeSession?.messages,
     activeSession?.controlValues,
@@ -86,7 +101,7 @@ export function ChatExperience({
   ]);
 
   useEffect(() => {
-    if (!canPersist || !activeSessionId || !hasHydratedSession || !onSaveSession) return;
+    if (!canPersist || !activeSessionId || !hasHydratedSession || !onSaveSession || isLoading) return;
 
     const snapshot = toConvexSafeSnapshot(messages, controlValues);
     if (saveTimeoutRef.current) {
@@ -107,6 +122,7 @@ export function ChatExperience({
     canPersist,
     controlValues,
     hasHydratedSession,
+    isLoading,
     messages,
     onSaveSession,
   ]);
@@ -128,32 +144,45 @@ export function ChatExperience({
 
       const text = inputValue.trim();
       setInputValue("");
+      setShowLandingTransition(messages.length === 0);
 
       if (!activeSessionId) {
         await onCreateSession(text);
       }
 
-      await sendMessage({ text });
+      try {
+        await sendMessage({ text });
+      } catch (sendError) {
+        setShowLandingTransition(false);
+        throw sendError;
+      }
     },
-    [activeSessionId, inputValue, isLoading, onCreateSession, sendMessage]
+    [activeSessionId, inputValue, isLoading, messages.length, onCreateSession, sendMessage]
   );
 
   const handleSuggestionClick = useCallback(
     async (prompt: string) => {
       if (isLoading) return;
+      setShowLandingTransition(messages.length === 0);
 
-      if (!activeSessionId) {
-        await onCreateSession(prompt);
+      try {
+        if (!activeSessionId) {
+          await onCreateSession(prompt);
+        }
+
+        await sendMessage({ text: prompt });
+      } catch (sendError) {
+        setShowLandingTransition(false);
+        throw sendError;
       }
-
-      await sendMessage({ text: prompt });
     },
-    [activeSessionId, isLoading, onCreateSession, sendMessage]
+    [activeSessionId, isLoading, messages.length, onCreateSession, sendMessage]
   );
 
   const handleAction = useCallback(
     async (prompt: string) => {
       if (isLoading) return;
+      setPendingControlChanges({});
       await sendMessage({ text: prompt });
     },
     [isLoading, sendMessage]
@@ -169,15 +198,37 @@ export function ChatExperience({
     [messages.length, sendMessage]
   );
 
-  const { handleControlChange: triggerReplan } = useReplan({
-    onReplan: handleReplan,
-    debounceMs: 1500,
-  });
-
   const handleControlChange = (id: string, value: unknown) => {
     setControlValues((prev) => ({ ...prev, [id]: value }));
-    triggerReplan(id, value);
+    setPendingControlChanges((prev) => ({ ...prev, [id]: value }));
   };
+
+  const handleConfirmControlChanges = useCallback(async () => {
+    if (isLoading || !hasPendingControlChanges) return;
+
+    const changes = new Map<string, unknown>(Object.entries(pendingControlChanges));
+    await handleReplan(changes);
+    setCommittedControlValues((prev) => ({ ...prev, ...pendingControlChanges }));
+    setPendingControlChanges({});
+  }, [handleReplan, hasPendingControlChanges, isLoading, pendingControlChanges]);
+
+  const handleCancelControlChanges = useCallback(() => {
+    setControlValues((prev) => {
+      const next = { ...prev };
+
+      for (const key of Object.keys(pendingControlChanges)) {
+        if (Object.prototype.hasOwnProperty.call(committedControlValues, key)) {
+          next[key] = committedControlValues[key];
+        } else {
+          delete next[key];
+        }
+      }
+
+      return next;
+    });
+
+    setPendingControlChanges({});
+  }, [committedControlValues, pendingControlChanges]);
 
   const handleReturnHome = useCallback(async () => {
     if (canPersist && activeSessionId && hasHydratedSession && onSaveSession) {
@@ -192,8 +243,11 @@ export function ChatExperience({
 
     setMessages([]);
     setControlValues({});
+    setCommittedControlValues({});
+    setPendingControlChanges({});
     setInputValue("");
     setDismissedError(null);
+    setShowLandingTransition(false);
     onReturnHome?.();
   }, [
     activeSessionId,
@@ -219,6 +273,12 @@ export function ChatExperience({
       behavior: "smooth",
     });
   }, [isChat, latestUserMessageId, status]);
+
+  useEffect(() => {
+    if (!error) return;
+
+    console.error("Chat request failed", error);
+  }, [error]);
 
   return (
     <div
@@ -352,7 +412,9 @@ export function ChatExperience({
                   onInputChange={setInputValue}
                   isLoading={isLoading}
                   onSubmit={handleSubmit}
-                  variant="inline"
+                  variant={hasPendingControlChanges ? "confirm" : "inline"}
+                  onConfirmChanges={handleConfirmControlChanges}
+                  onCancelChanges={handleCancelControlChanges}
                 />
               )}
             </AnimatePresence>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useUser } from "@civic/auth/react";
 import { useMutation, useQuery } from "convex/react";
 import {
@@ -12,6 +12,7 @@ import {
 import { convexApi } from "@/lib/convexApi";
 import {
   getStoredGuestOwnerKey,
+  readStoredActiveSessionId,
   writeStoredActiveSessionId,
 } from "@/lib/chatSessionStorage";
 
@@ -27,12 +28,9 @@ export function usePersistedChatSessions() {
   );
   const sessions = useMemo<PersistedChatSession[]>(() => sessionsQuery ?? [], [sessionsQuery]);
 
-  useEffect(() => {
-    if (!ownerKey) return;
-    writeStoredActiveSessionId(ownerKey, null);
-  }, [ownerKey]);
-
-  const desiredSessionId = ownerKey ? sessionSelections[ownerKey] : undefined;
+  const desiredSessionId = ownerKey
+    ? sessionSelections[ownerKey] ?? readStoredActiveSessionId(ownerKey) ?? undefined
+    : undefined;
   const activeSessionId =
     desiredSessionId && sessions.some((session) => session.sessionId === desiredSessionId)
       ? desiredSessionId

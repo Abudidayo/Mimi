@@ -1,8 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { CivicAuthProvider } from "@civic/auth/nextjs";
+import { CivicAuthProvider } from "@civic/auth/react";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
+
+const CIVIC_CLIENT_ID =
+  process.env.NEXT_PUBLIC_CIVIC_CLIENT_ID ??
+  "14053725-1e38-4e54-aefb-f65d58484704";
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -16,11 +20,11 @@ export function AppProviders({ children, convexUrl }: AppProvidersProps) {
   }, [convexUrl]);
 
   if (!convex) {
-    return <CivicAuthProvider>{children}</CivicAuthProvider>;
+    return <CivicAuthProvider clientId={CIVIC_CLIENT_ID}>{children}</CivicAuthProvider>;
   }
 
   return (
-    <CivicAuthProvider>
+    <CivicAuthProvider clientId={CIVIC_CLIENT_ID}>
       <ConvexProvider client={convex}>{children}</ConvexProvider>
     </CivicAuthProvider>
   );
