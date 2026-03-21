@@ -4,7 +4,6 @@ import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  CaretDown,
   ClockCounterClockwise,
   PencilSimple,
   Trash,
@@ -17,6 +16,10 @@ interface SessionHistoryMenuProps {
   onSelect: (sessionId: string) => void;
   onRename: (sessionId: string) => void;
   onDelete: (sessionId: string) => void;
+  triggerClassName?: string;
+  triggerLabel?: string;
+  triggerStyle?: React.CSSProperties;
+  triggerVariant?: "default" | "pill";
 }
 
 function formatTimestamp(timestamp: number) {
@@ -33,27 +36,32 @@ export function SessionHistoryMenu({
   onSelect,
   onRename,
   onDelete,
+  triggerClassName,
+  triggerLabel = "History",
+  triggerStyle,
+  triggerVariant = "default",
 }: SessionHistoryMenuProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button
+        <motion.button
           type="button"
           className={cn(
-            "h-14 shrink-0 rounded-full px-4",
-            "inline-flex items-center justify-center gap-2",
-            "bg-white/92 text-[#2559b7] border border-white/70",
-            "shadow-[0_10px_28px_rgba(9,24,62,0.16)] transition-all duration-200",
-            "hover:bg-white hover:scale-[1.03]"
+            triggerVariant === "pill"
+              ? "px-7 py-3 rounded-full text-sm font-bold text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none inline-flex items-center justify-center gap-2"
+              : "h-14 shrink-0 rounded-full px-4 inline-flex items-center justify-center gap-2 bg-white/92 text-[#2559b7] border border-white/70 shadow-[0_10px_28px_rgba(9,24,62,0.16)] transition-all duration-200 hover:bg-white hover:scale-[1.03]",
+            triggerClassName
           )}
+          style={triggerStyle}
           aria-label="View chat history"
+          whileHover={{ scale: 1.08, transition: { type: "spring", stiffness: 800, damping: 20 } }}
+          whileTap={{ scale: 0.93, transition: { type: "spring", stiffness: 1000, damping: 30 } }}
         >
           <ClockCounterClockwise weight="bold" className="w-5 h-5" />
-          <span className="hidden text-sm font-semibold sm:inline">History</span>
-          <CaretDown weight="bold" className="hidden h-3.5 w-3.5 sm:block" />
-        </button>
+          <span className="text-sm font-semibold">{triggerLabel}</span>
+        </motion.button>
       </Dialog.Trigger>
 
       <Dialog.Portal>

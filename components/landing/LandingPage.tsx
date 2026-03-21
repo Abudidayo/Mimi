@@ -46,30 +46,7 @@ const STARS: StarDot[] = Array.from({ length: 110 }, (_, i) => ({
   warm: rand() > 0.6,
 }));
 
-// ─── Suggestion pill configs ───────────────────────────────────────────────────
-const SUGGESTIONS = [
-  {
-    label: "7 days in Japan 🇯🇵",
-    prompt: "Plan a 7-day trip to Japan",
-    gradient: "radial-gradient(ellipse at 50% 15%, #ffcbb8 0%, #f87868 28%, #e84830 62%, #c83018 100%)",
-    shadowRgb: "160,36,14",
-    topHighlight: "rgba(255,220,205,0.6)",
-  },
-  {
-    label: "Paris art & food 🥐",
-    prompt: "Plan a 5-day trip to Paris",
-    gradient: "radial-gradient(ellipse at 50% 15%, #c8e8ff 0%, #74b8ff 28%, #3e88f0 62%, #2060cc 100%)",
-    shadowRgb: "22,72,160",
-    topHighlight: "rgba(210,235,255,0.6)",
-  },
-  {
-    label: "Bali beach escape 🌊",
-    prompt: "Plan a beach trip to Bali",
-    gradient: "radial-gradient(ellipse at 50% 15%, #b8f8d4 0%, #52e08a 28%, #1ec862 62%, #14a048 100%)",
-    shadowRgb: "12,110,48",
-    topHighlight: "rgba(195,255,220,0.6)",
-  },
-];
+const LUCKY_PROMPT = "Surprise me with an incredible trip idea";
 
 interface LandingPageProps {
   inputValue: string;
@@ -218,8 +195,8 @@ export function LandingPage({
         transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
         className="relative z-10 w-full max-w-lg"
       >
-        <div className="mb-5 flex items-center gap-3">
-          <form onSubmit={onSubmit} className="relative min-w-0 flex-1">
+        <div className="mb-5">
+          <form onSubmit={onSubmit} className="relative min-w-0">
             <input
               type="text"
               value={inputValue}
@@ -251,39 +228,52 @@ export function LandingPage({
               <PaperPlaneRight weight="fill" className="w-5 h-5 text-white" />
             </motion.button>
           </form>
-
-          <SessionHistoryMenu
-            sessions={sessions}
-            onSelect={onSessionSelect}
-            onRename={onSessionRename}
-            onDelete={onSessionDelete}
-          />
         </div>
 
         <div className="flex flex-wrap gap-3 justify-center">
-          {SUGGESTIONS.map((s, i) => (
-            <motion.button
-              key={i}
-              initial={{ opacity: 0, y: 14, scale: 0.88 }}
-              animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }}
-              transition={{ type: "spring", stiffness: 800, damping: 20 }}
-              onClick={() => onSuggestionClick(s.prompt)}
-              disabled={isLoading}
-              className="px-7 py-3 rounded-full text-sm font-bold text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none"
-              style={{
-                background: s.gradient,
+          <motion.button
+            initial={{ opacity: 0, y: 14, scale: 0.88 }}
+            animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }}
+            transition={{ type: "spring", stiffness: 800, damping: 20 }}
+            onClick={() => onSuggestionClick(LUCKY_PROMPT)}
+            disabled={isLoading}
+            className="px-7 py-3 rounded-full text-sm font-bold text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none"
+            style={{
+              background: "radial-gradient(ellipse at 50% 15%, #ffd7c6 0%, #ff9f7b 28%, #f06545 62%, #cd3c1e 100%)",
+              boxShadow: [
+                "inset 0 2px 10px rgba(255,228,214,0.58)",
+                "inset 0 -6px 14px rgba(0,0,0,0.18)",
+                "0 10px 28px rgba(168,53,28,0.42)",
+              ].join(", "),
+            }}
+            whileHover={{ scale: 1.08, transition: { type: "spring", stiffness: 800, damping: 20 } }}
+            whileTap={{ scale: 0.93, transition: { type: "spring", stiffness: 1000, damping: 30 } }}
+          >
+            I&apos;m feeling lucky
+          </motion.button>
+
+          <motion.div
+            initial={{ opacity: 0, y: 14, scale: 0.88 }}
+            animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.05 } }}
+          >
+            <SessionHistoryMenu
+              sessions={sessions}
+              onSelect={onSessionSelect}
+              onRename={onSessionRename}
+              onDelete={onSessionDelete}
+              triggerLabel="History"
+              triggerVariant="pill"
+              triggerStyle={{
+                background: "radial-gradient(ellipse at 50% 15%, #d7e8ff 0%, #8dbdff 28%, #4e8ff3 62%, #2a64cf 100%)",
                 boxShadow: [
-                  `inset 0 2px 10px ${s.topHighlight}`,
-                  `inset 0 -6px 14px rgba(0,0,0,0.18)`,
-                  `0 10px 28px rgba(${s.shadowRgb},0.45)`,
+                  "inset 0 2px 10px rgba(223,238,255,0.58)",
+                  "inset 0 -6px 14px rgba(0,0,0,0.18)",
+                  "0 10px 28px rgba(34,82,170,0.4)",
                 ].join(", "),
+                border: "none",
               }}
-              whileHover={{ scale: 1.08, transition: { type: "spring", stiffness: 800, damping: 20 } }}
-              whileTap={{ scale: 0.93, transition: { type: "spring", stiffness: 1000, damping: 30 } }}
-            >
-              {s.label}
-            </motion.button>
-          ))}
+            />
+          </motion.div>
         </div>
       </motion.div>
     </motion.div>
