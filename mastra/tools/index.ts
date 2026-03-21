@@ -5,5 +5,7 @@ export { checkVisaTool } from '@/mastra/agents/visa';
 export { getLocalEventsTool } from '@/mastra/agents/events';
 export { getPackingListTool } from '@/mastra/agents/shopping';
 export { getTransportOptionsTool, searchFlightsTool } from '@/mastra/agents/flights';
+export { findLodgingTool } from '@/mastra/agents/lodging';
+export { finalizeTripReservationsTool } from '@/mastra/agents/booking';
 export { tripPlannerTool } from '@/mastra/agents/planner';
 export { suggestDestinationsTool } from '@/mastra/agents/suggestions';

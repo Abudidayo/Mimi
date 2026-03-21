@@ -9,6 +9,8 @@ import { visaAgent } from '@/mastra/agents/visa';
 import { eventsAgent } from '@/mastra/agents/events';
 import { shoppingAgent } from '@/mastra/agents/shopping';
 import { flightsAgent } from '@/mastra/agents/flights';
+import { lodgingAgent } from '@/mastra/agents/lodging';
+import { bookingAgent } from '@/mastra/agents/booking';
 import { plannerAgent } from '@/mastra/agents/planner';
 import { suggestionsAgent } from '@/mastra/agents/suggestions';
 
@@ -36,6 +38,8 @@ Only ask for a field when it is genuinely missing or still ambiguous.
 - **events-agent**: Delegate only when travel dates are provided.
 - **shopping-agent**: Delegate after destination is confirmed, ideally after weather is known.
 - **flights-agent**: Delegate whenever the user asks about transportation, getting there, flights, airfare, airlines, routes, flying, trains, buses, ferries, transfers, taxis, rideshare, booking, or flight plans, but only after you know the destination, where they are travelling from, and the travel dates.
+- **lodging-agent**: Delegate whenever the user asks where to stay, wants hotels, Airbnbs, hostels, resorts, or accommodation options, but only after you know destination, dates, travellers, and stay type.
+- **booking-agent**: Delegate when the user wants to reserve, book, finalize, or lock in the trip after the key trip details are confirmed.
 - **planner-agent**: Delegate when the user wants a full plan AND destination + number of days are known.
 
 ## Orchestration strategy
@@ -47,10 +51,15 @@ Think before delegating. "I want to go to Paris" → delegate to safety-agent, w
 
 "Show me flight plans to Japan", "How can I fly there?", "How should I get there?", or "What transport options do I have?" → first check whether the destination, trip origin, and dates are already present anywhere in the conversation. If any of those are still missing, ask only for the missing ones with inline controls. Only then delegate to flights-agent.
 
+"Find me hotels in Kyoto" or "Should I stay in a hotel or Airbnb?" → first check whether destination, dates, travellers, and stay type are already present. Ask only for the missing ones, then delegate to lodging-agent.
+
+"Book this trip" or "Reserve everything" → if destination, origin, dates, travellers, and stay type are all known, delegate to booking-agent. If stay type is missing, ask for it with an inline select before delegating.
+
 If a user explicitly asks about transportation in any wording, you must help with transport before responding fully.
 If the destination is missing, ask for destination first with an inline control.
 If the origin is missing, ask where they are travelling from with an inline control.
 If the dates are missing, ask for departure and return dates with inline date pickers.
+If the user wants lodging or booking and stay type is missing, ask for it with an inline select.
 Never assume the trip starts from New York, London, or any default city or country.
 Use flights-agent only once the destination, origin, and dates are known.
 
@@ -67,9 +76,11 @@ Examples:
 - If you need trip origin for transport, ask with: Travelling from: {{::country[origin|GB]}}
 - If you need dates, ask with: Departure {{::date-picker[departure]}} Return {{::date-picker[return]}}
 - If you need traveller count or budget, ask with: {{+[travelers|2]-}} travellers with {{+[$budget|3000]-}} each
+- If you need lodging preference, ask with: Stay type: {{::select[stay_type|hotel,airbnb,hostel,resort,guesthouse,other]}}
 
 If the user asks for visas and nationality is missing, ask for passport country with a country picker instead of a plain text question.
 If the user asks for transportation and destination, origin, or dates are missing, ask for them with inline controls instead of guessing.
+If the user wants accommodation or booking and stay type is missing, ask for it with the inline select instead of a plain text question.
 
 ${INLINE_UI_PROMPT_GUIDE}
 
@@ -105,6 +116,8 @@ export const supervisorAgent = new Agent({
     eventsAgent,
     shoppingAgent,
     flightsAgent,
+    lodgingAgent,
+    bookingAgent,
     plannerAgent,
     suggestionsAgent,
   },

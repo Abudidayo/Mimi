@@ -10,6 +10,8 @@ import {
   Confetti,
   Bag,
   Airplane,
+  HouseLine,
+  Receipt,
   CalendarBlank,
   MapPin,
   CircleNotch,
@@ -25,13 +27,15 @@ import { VisaCard, type VisaData } from "@/components/agent-ui/VisaCard";
 import { EventsCard, type EventsData } from "@/components/agent-ui/EventsCard";
 import { ShoppingCard, type ShoppingData } from "@/components/agent-ui/ShoppingCard";
 import { FlightsCard, type FlightsData } from "@/components/agent-ui/FlightsCard";
+import { LodgingCard, type LodgingData } from "@/components/agent-ui/LodgingCard";
+import { BookingCard, type BookingData } from "@/components/agent-ui/BookingCard";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { DestinationCards } from "@/components/chat/DestinationCards";
 import type { DaySchedule } from "@/lib/utils/parse-itinerary";
 import type { SuggestionsData } from "@/mastra/agents/suggestions";
 import { CONTROL_COLORS, pillBoxShadow, type ColorConfig } from "@/lib/inline-ui/colors";
 
-export type AgentType = 'safety' | 'currency' | 'weather' | 'visa' | 'events' | 'shopping' | 'flights' | 'itinerary' | 'suggestions';
+export type AgentType = 'safety' | 'currency' | 'weather' | 'visa' | 'events' | 'shopping' | 'flights' | 'lodging' | 'booking' | 'itinerary' | 'suggestions';
 
 export interface AgentData {
   safety?: SafetyData;
@@ -41,6 +45,8 @@ export interface AgentData {
   events?: EventsData;
   shopping?: ShoppingData;
   flights?: FlightsData;
+  lodging?: LodgingData;
+  booking?: BookingData;
   itinerary?: DaySchedule[];
   suggestions?: SuggestionsData;
 }
@@ -60,6 +66,8 @@ const AGENTS: AgentConfig[] = [
   { id: 'events',    label: 'Events',    icon: <Confetti       weight="fill" className="w-3.5 h-3.5" />, color: CONTROL_COLORS[4] },
   { id: 'shopping',  label: 'Packing',   icon: <Bag            weight="fill" className="w-3.5 h-3.5" />, color: CONTROL_COLORS[5] },
   { id: 'flights',   label: 'Transport', icon: <Airplane       weight="fill" className="w-3.5 h-3.5" />, color: CONTROL_COLORS[1] },
+  { id: 'lodging',   label: 'Stay',      icon: <HouseLine      weight="fill" className="w-3.5 h-3.5" />, color: CONTROL_COLORS[3] },
+  { id: 'booking',   label: 'Booking',   icon: <Receipt        weight="fill" className="w-3.5 h-3.5" />, color: CONTROL_COLORS[2] },
   { id: 'itinerary',   label: 'Itinerary',    icon: <CalendarBlank  weight="fill" className="w-3.5 h-3.5" />, color: CONTROL_COLORS[6] },
   { id: 'suggestions', label: 'Suggestions',  icon: <MapPin         weight="fill" className="w-3.5 h-3.5" />, color: CONTROL_COLORS[4] },
 ];
@@ -155,6 +163,8 @@ export function AgentPanel({ data, loading, onAction }: AgentPanelProps) {
               {expanded === 'events'   && data.events   && <EventsCard   data={data.events}   />}
               {expanded === 'shopping' && data.shopping && <ShoppingCard data={data.shopping} />}
               {expanded === 'flights'  && data.flights  && <FlightsCard  data={data.flights}  />}
+              {expanded === 'lodging'  && data.lodging  && <LodgingCard  data={data.lodging}  />}
+              {expanded === 'booking'  && data.booking  && <BookingCard  data={data.booking}  />}
             </div>
           </motion.div>
         )}

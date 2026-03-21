@@ -6,6 +6,8 @@ import {
   Stamp,
   Airplane,
   Confetti,
+  HouseLine,
+  Receipt,
   SlidersHorizontal,
   CurrencyDollar,
   CalendarBlank,
@@ -36,6 +38,7 @@ interface InlineDefaults {
   destination?: Country;
   travelers?: number;
   budget?: number;
+  stayType?: string;
 }
 
 function toValidDate(value: unknown): Date | null {
@@ -88,6 +91,11 @@ function extractInlineDefaults(text: string | undefined): InlineDefaults {
 
     if (segment.type === 'price' && segment.controlId === 'budget' && segment.props?.initialValue) {
       defaults.budget = segment.props.initialValue;
+      continue;
+    }
+
+    if (segment.type === 'select' && segment.controlId === 'stay_type') {
+      defaults.stayType = segment.props?.options?.[0]?.value;
     }
   }
 
@@ -103,6 +111,11 @@ export function ActionButtons({ agentData, controlValues, assistantText, onActio
     typeof travelersValue === 'number'
       ? travelersValue
       : inlineDefaults.travelers ?? 2;
+  const stayTypeValue = controlValues['stay_type'];
+  const stayType =
+    typeof stayTypeValue === 'string' && stayTypeValue.trim()
+      ? stayTypeValue
+      : inlineDefaults.stayType;
 
   const days = inferTripDays(controlValues);
 
@@ -136,6 +149,17 @@ export function ActionButtons({ agentData, controlValues, assistantText, onActio
         prompt: `What are the best transportation options to get to ${destName}?`,
         icon: <Airplane weight="fill" className="w-3.5 h-3.5" />,
         colorIdx: 1,
+      });
+    }
+
+    if (!agentData.lodging) {
+      buttons.push({
+        label: 'Find stays',
+        prompt: stayType
+          ? `Find me great ${stayType} options in ${destName}`
+          : `Help me choose where to stay in ${destName}`,
+        icon: <HouseLine weight="fill" className="w-3.5 h-3.5" />,
+        colorIdx: 3,
       });
     }
 
@@ -182,6 +206,25 @@ export function ActionButtons({ agentData, controlValues, assistantText, onActio
         colorIdx: 1,
       });
     }
+    if (!agentData.lodging) {
+      buttons.push({
+        label: 'Stay options',
+        prompt: `Where should I stay in ${destName}?`,
+        icon: <HouseLine weight="fill" className="w-3.5 h-3.5" />,
+        colorIdx: 3,
+      });
+    }
+  }
+
+  if (destName && (agentData.itinerary || agentData.flights || agentData.lodging) && !agentData.booking) {
+    buttons.push({
+      label: 'Book this trip',
+      prompt: stayType
+        ? `Book this trip to ${destName} with ${stayType} lodging and the best transport option`
+        : `Book this trip to ${destName} and choose the best transport and stay options`,
+      icon: <Receipt weight="fill" className="w-3.5 h-3.5" />,
+      colorIdx: 2,
+    });
   }
 
   if (buttons.length === 0) return null;

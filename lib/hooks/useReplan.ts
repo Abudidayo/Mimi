@@ -138,6 +138,9 @@ export function formatReplanPrompt(changes: Map<string, unknown>): string {
       case 'origin':
         changeDescriptions.push(`travelling from ${formatDestinationValue(value)}`);
         break;
+      case 'stay_type':
+        changeDescriptions.push(`stay type as ${value}`);
+        break;
       case 'pace':
         changeDescriptions.push(`${value} pace`);
         break;
