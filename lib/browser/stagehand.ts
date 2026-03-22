@@ -2,6 +2,7 @@ import { Stagehand } from '@browserbasehq/stagehand';
 import {
   appendBrowserProgressEvent,
   finishBrowserProgressRun,
+  registerBrowserProgressStopHandler,
   startBrowserProgressRun,
 } from '@/lib/browser/progress-store';
 
@@ -111,6 +112,7 @@ export async function executeBrowserFlow(
   }
 
   const progressRunId = startBrowserProgressRun(request.label, request.startUrl);
+  let stopRequested = false;
 
   const stagehand = new Stagehand({
     env,
@@ -156,6 +158,11 @@ export async function executeBrowserFlow(
       executionModel: stagehandExecutionModel.modelName,
     });
     appendBrowserProgressEvent(progressRunId, `Starting ${request.label}`);
+    registerBrowserProgressStopHandler(progressRunId, async () => {
+      stopRequested = true;
+      appendBrowserProgressEvent(progressRunId, 'Closing browser session');
+      await stagehand.close({ force: true }).catch(() => undefined);
+    });
 
     await stagehand.init();
     const page = await stagehand.context.newPage(request.startUrl);
@@ -198,15 +205,15 @@ export async function executeBrowserFlow(
     }
     finishBrowserProgressRun(
       progressRunId,
-      result.completed ? 'completed' : 'failed',
-      result.message,
+      stopRequested ? 'stopped' : result.completed ? 'completed' : 'failed',
+      stopRequested ? 'Stopped by user.' : result.message,
       stagehand.browserbaseSessionURL
     );
 
     return {
-      status: result.completed ? 'completed' : 'partial',
+      status: stopRequested ? 'failed' : result.completed ? 'completed' : 'partial',
       label: request.label,
-      summary: result.message,
+      summary: stopRequested ? 'Stopped by user.' : result.message,
       sessionUrl: stagehand.browserbaseSessionURL,
       actions: actions.slice(0, 6),
     };
@@ -218,15 +225,15 @@ export async function executeBrowserFlow(
     });
     finishBrowserProgressRun(
       progressRunId,
-      'failed',
-      error instanceof Error ? error.message : 'Browser execution failed unexpectedly.',
+      stopRequested ? 'stopped' : 'failed',
+      stopRequested ? 'Stopped by user.' : error instanceof Error ? error.message : 'Browser execution failed unexpectedly.',
       stagehand.browserbaseSessionURL
     );
 
     return {
-      status: 'failed',
+      status: stopRequested ? 'failed' : 'failed',
       label: request.label,
-      summary: error instanceof Error ? error.message : 'Browser execution failed unexpectedly.',
+      summary: stopRequested ? 'Stopped by user.' : error instanceof Error ? error.message : 'Browser execution failed unexpectedly.',
       sessionUrl: stagehand.browserbaseSessionURL,
       actions: [],
     };

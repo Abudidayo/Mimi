@@ -1,4 +1,4 @@
-export type BrowserProgressStatus = "running" | "completed" | "failed";
+export type BrowserProgressStatus = "running" | "completed" | "failed" | "stopped";
 
 export interface BrowserProgressEvent {
   id: string;
@@ -20,6 +20,7 @@ export interface BrowserProgressRun {
 
 declare global {
   var __browserProgressRuns: Map<string, BrowserProgressRun> | undefined;
+  var __browserProgressStopHandlers: Map<string, () => Promise<void> | void> | undefined;
 }
 
 function getStore() {
@@ -28,6 +29,14 @@ function getStore() {
   }
 
   return globalThis.__browserProgressRuns;
+}
+
+function getStopHandlers() {
+  if (!globalThis.__browserProgressStopHandlers) {
+    globalThis.__browserProgressStopHandlers = new Map<string, () => Promise<void> | void>();
+  }
+
+  return globalThis.__browserProgressStopHandlers;
 }
 
 function createId(prefix: string) {
@@ -65,6 +74,10 @@ export function appendBrowserProgressEvent(runId: string, message: string) {
   }
 }
 
+export function registerBrowserProgressStopHandler(runId: string, handler: () => Promise<void> | void) {
+  getStopHandlers().set(runId, handler);
+}
+
 export function finishBrowserProgressRun(
   runId: string,
   status: BrowserProgressStatus,
@@ -78,10 +91,29 @@ export function finishBrowserProgressRun(
   run.summary = summary;
   run.sessionUrl = sessionUrl;
   run.updatedAt = Date.now();
+  getStopHandlers().delete(runId);
 }
 
 export function listBrowserProgressRuns() {
   return Array.from(getStore().values())
     .sort((a, b) => b.updatedAt - a.updatedAt)
     .slice(0, 4);
+}
+
+export async function stopBrowserProgressRun(runId: string) {
+  const run = getStore().get(runId);
+  if (!run) return false;
+
+  appendBrowserProgressEvent(runId, "Stop requested by user");
+  run.status = "stopped";
+  run.summary = "Stopped by user.";
+  run.updatedAt = Date.now();
+
+  const stopHandler = getStopHandlers().get(runId);
+  if (stopHandler) {
+    await stopHandler();
+    getStopHandlers().delete(runId);
+  }
+
+  return true;
 }

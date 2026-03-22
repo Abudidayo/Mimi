@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Browser, CaretRight, CursorClick, Globe, SpinnerGap } from "@phosphor-icons/react";
+import { Browser, CaretRight, CursorClick, Globe, Keyboard, SpinnerGap } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BrowserProgressEvent {
@@ -13,7 +13,7 @@ interface BrowserProgressEvent {
 interface BrowserProgressRun {
   id: string;
   label: string;
-  status: "running" | "completed" | "failed";
+  status: "running" | "completed" | "failed" | "stopped";
   startUrl: string;
   startedAt: number;
   updatedAt: number;
@@ -24,6 +24,15 @@ interface BrowserProgressRun {
 
 function iconForMessage(message: string) {
   const lower = message.toLowerCase();
+
+  if (
+    lower.includes(" type ") ||
+    lower.startsWith("type ") ||
+    lower.includes("fill ") ||
+    lower.includes("enter ")
+  ) {
+    return <Keyboard weight="fill" className="h-3.5 w-3.5 text-violet-200" />;
+  }
 
   if (lower.includes("click")) {
     return <CursorClick weight="fill" className="h-3.5 w-3.5 text-sky-200" />;
@@ -36,8 +45,34 @@ function iconForMessage(message: string) {
   return <CaretRight weight="bold" className="h-3.5 w-3.5 text-emerald-200" />;
 }
 
+function formatEventMessage(message: string) {
+  let formatted = message.trim();
+
+  formatted = formatted.replace(/^Agent calling tool:\s*/i, "");
+  formatted = formatted.replace(/^act\s*/i, "");
+  formatted = formatted.replace(/^goto\s*/i, "Open ");
+  formatted = formatted.replace(/^ariaTree\s*$/i, "Scan the page");
+
+  if (/^type\s+['"].+['"]\s+into\s+/i.test(formatted)) {
+    formatted = formatted.replace(/^type\s+/i, "Type ");
+  } else if (/^type\s+/i.test(formatted)) {
+    formatted = formatted.replace(/^type\s+/i, "Enter ");
+  }
+
+  formatted = formatted.replace(/\btextbox\b/gi, "field");
+  formatted = formatted.replace(/\binput\b/gi, "field");
+  formatted = formatted.replace(/\s+/g, " ").trim();
+
+  if (formatted.length > 0) {
+    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  }
+
+  return formatted;
+}
+
 export function BrowserTimeline({ active }: { active: boolean }) {
   const [runs, setRuns] = useState<BrowserProgressRun[]>([]);
+  const [stoppingRunId, setStoppingRunId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!active) return;
@@ -73,6 +108,22 @@ export function BrowserTimeline({ active }: { active: boolean }) {
     return null;
   }
 
+  const handleStop = async (runId: string) => {
+    setStoppingRunId(runId);
+    try {
+      await fetch("/api/browser-progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ runId }),
+      });
+      const res = await fetch("/api/browser-progress", { cache: "no-store" });
+      const data = (await res.json()) as { runs?: BrowserProgressRun[] };
+      setRuns(Array.isArray(data.runs) ? data.runs : []);
+    } finally {
+      setStoppingRunId(null);
+    }
+  };
+
   return (
     <div className="mt-3 space-y-3">
       {runs.map((run) => (
@@ -102,9 +153,25 @@ export function BrowserTimeline({ active }: { active: boolean }) {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-white">{run.label}</p>
               <p className="text-xs text-white/55">
-                {run.status === "running" ? "Live browser activity" : run.summary ?? "Browser run finished"}
+                {run.status === "running"
+                  ? "Live browser activity"
+                  : run.status === "stopped"
+                    ? "Stopped by user"
+                    : run.summary ?? "Browser run finished"}
               </p>
             </div>
+            {run.status === "running" && (
+              <button
+                type="button"
+                onClick={() => {
+                  void handleStop(run.id);
+                }}
+                disabled={stoppingRunId === run.id}
+                className="rounded-full border border-red-300/20 bg-red-400/10 px-3 py-1 text-xs font-semibold text-red-100 transition-colors hover:bg-red-400/20 disabled:opacity-60"
+              >
+                {stoppingRunId === run.id ? "Stopping..." : "Stop"}
+              </button>
+            )}
           </div>
 
           <div className="mt-3 space-y-2">
@@ -118,7 +185,7 @@ export function BrowserTimeline({ active }: { active: boolean }) {
                 >
                   <div className="mt-0.5">{iconForMessage(event.message)}</div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-white/90">{event.message}</p>
+                    <p className="text-xs font-medium text-white/90">{formatEventMessage(event.message)}</p>
                   </div>
                 </motion.div>
               ))}
