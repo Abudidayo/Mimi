@@ -1,7 +1,7 @@
-# Mimi
 
-<img src="/assets/mimi-ballon.png" />
+<img width="1300" height="688" alt="mimi-ballon" src="https://github.com/user-attachments/assets/5cce7c95-c65d-4872-8bb0-7c044e202fcd" />
 
+---
 
 An agentic travel planner built for the AI Agents track.
 
