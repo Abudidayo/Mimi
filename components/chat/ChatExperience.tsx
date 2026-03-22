@@ -25,6 +25,16 @@ import {
 } from "@/lib/chatPersistence";
 import { extractAgentData } from "@/lib/chat/agent-data";
 import { buildTripArtifact } from "@/lib/trip-artifact";
+import { decodeActionPrompt, encodeActionPrompt } from "@/lib/chat/action-prompts";
+
+function logOutgoingChatMessage(source: string, text: string) {
+  const decoded = decodeActionPrompt(text);
+  const labelPrefix = "[chat]";
+  console.groupCollapsed(`${labelPrefix} sending ${source}`);
+  console.log("visible", decoded.displayText);
+  console.log("prompt", decoded.promptText);
+  console.groupEnd();
+}
 
 interface ChatExperienceProps {
   sessions: PersistedChatSession[];
@@ -179,6 +189,7 @@ export function ChatExperience({
       if (!inputValue.trim() || isLoading) return;
 
       const text = inputValue.trim();
+      logOutgoingChatMessage("composer", text);
       setInputValue("");
       setShowLandingTransition(messages.length === 0);
 
@@ -199,6 +210,7 @@ export function ChatExperience({
   const handleSuggestionClick = useCallback(
     async (prompt: string) => {
       if (isLoading) return;
+      logOutgoingChatMessage("suggestion", prompt);
       setShowLandingTransition(messages.length === 0);
 
       try {
@@ -219,6 +231,7 @@ export function ChatExperience({
     async (prompt: string) => {
       if (isLoading) return;
       setPendingControlChanges({});
+      logOutgoingChatMessage("action", prompt);
       await sendMessage({ text: prompt });
     },
     [isLoading, sendMessage]
@@ -232,8 +245,15 @@ export function ChatExperience({
     async (changes: Map<string, unknown>) => {
       if (messages.length === 0) return;
       setIsReplanning(true);
-      await sendMessage({ text: formatReplanPrompt(changes) });
-      setIsReplanning(false);
+      try {
+        const encodedPrompt = encodeActionPrompt("Apply my edits", formatReplanPrompt(changes));
+        logOutgoingChatMessage("replan", encodedPrompt);
+        await sendMessage({
+          text: encodedPrompt,
+        });
+      } finally {
+        setIsReplanning(false);
+      }
     },
     [messages.length, sendMessage]
   );

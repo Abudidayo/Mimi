@@ -8,6 +8,7 @@ import { AgentPanel, type AgentData, type AgentType } from "@/components/AgentPa
 import { ActionButtons } from "@/components/chat/ActionButtons";
 import { BrowserTimeline } from "@/components/chat/BrowserTimeline";
 import { extractAgentData } from "@/lib/chat/agent-data";
+import { decodeActionPrompt } from "@/lib/chat/action-prompts";
 
 interface ChatMessageProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,6 +49,10 @@ export function ChatMessage({
   const text =
     (textParts.map((part) => part.text).join('') || message.content) ??
     '';
+  const userVisibleText =
+    message.role === 'user'
+      ? decodeActionPrompt(text).displayText
+      : text;
   const hasText = text.trim().length > 0;
   const showActionButtons =
     isLastAssistant &&
@@ -101,7 +106,7 @@ export function ChatMessage({
               onControlChange={onControlChange}
             />
           ) : message.role === 'user' ? (
-            <p className="whitespace-pre-wrap m-0">{text}</p>
+            <p className="whitespace-pre-wrap m-0">{userVisibleText}</p>
           ) : null}
         </div>
         {isBookingInProgress && (

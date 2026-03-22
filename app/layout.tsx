@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fredoka } from "next/font/google";
 import { AppProviders } from "@/components/providers/AppProviders";
+import "mapbox-gl/dist/mapbox-gl.css";
 import "./globals.css";
 
 const fredoka = Fredoka({

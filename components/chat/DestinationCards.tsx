@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Star } from "@phosphor-icons/react";
 import { CONTROL_COLORS, pillBoxShadow } from "@/lib/inline-ui/colors";
+import { encodeActionPrompt } from "@/lib/chat/action-prompts";
 import type { SuggestionsData } from "@/mastra/agents/suggestions";
 
 interface DestinationCardsProps {
@@ -78,7 +79,10 @@ function DestinationCard({
               {suggestion.name}
             </p>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <FlagAvatar code={suggestion.countryCode} name={suggestion.country} />
+              <FlagAvatar
+                code={suggestion.countryCode}
+                name={suggestion.country}
+              />
               <span className="text-white/70 text-xs font-medium drop-shadow">
                 {suggestion.country}
               </span>
@@ -126,7 +130,10 @@ function DestinationCard({
           <motion.button
             onClick={() =>
               onAction(
-                `Plan a trip to ${suggestion.name}, ${suggestion.country}`
+                encodeActionPrompt(
+                  `Plan a trip to ${suggestion.name}, ${suggestion.country}`,
+                  `Plan a trip to ${suggestion.name}, ${suggestion.country}`,
+                ),
               )
             }
             className="mt-auto flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-sm font-semibold text-white"

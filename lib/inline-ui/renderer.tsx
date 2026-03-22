@@ -21,6 +21,35 @@ interface InlineUIRendererProps {
   onControlChange: (id: string, value: any) => void;
 }
 
+function resolveCurrencySymbol(controlValues: Record<string, unknown>) {
+  const origin = controlValues.origin as { code?: unknown } | undefined;
+  const destination = controlValues.destination as { code?: unknown } | undefined;
+  const isoCode =
+    (typeof origin?.code === "string" ? origin.code : undefined) ??
+    (typeof destination?.code === "string" ? destination.code : undefined) ??
+    "GB";
+
+  switch (isoCode) {
+    case "GB":
+      return "£";
+    case "EU":
+    case "FR":
+    case "DE":
+    case "IT":
+    case "ES":
+    case "PT":
+    case "NL":
+    case "IE":
+      return "€";
+    case "JP":
+      return "¥";
+    case "US":
+      return "$";
+    default:
+      return "£";
+  }
+}
+
 // Apply **bold**, *italic*, `code` to a plain string — returns React nodes
 function applyInlineMarkdown(text: string, keyPrefix: string): React.ReactNode[] {
   if (!text) return [];
@@ -87,6 +116,7 @@ function renderSegment(
   }
   if (segment.type === 'price') {
     const initial = segment.props?.initialValue ?? 1000;
+    const currencySymbol = resolveCurrencySymbol(controlValues);
     return (
       <PriceStepper
         key={key}
@@ -95,6 +125,7 @@ function renderSegment(
         min={0}
         max={100000}
         step={50}
+        currency={currencySymbol}
         color={color}
       />
     );
@@ -111,7 +142,7 @@ function renderSegment(
     );
   }
   if (segment.type === 'country') {
-    const fallback: Country = { code: 'US', name: 'United States' };
+    const fallback: Country = { code: 'GB', name: 'United Kingdom' };
     // If the AI passed an ISO code (e.g. {{::country[destination|JP]}}), look it up
     const initialCode: string | null = segment.props?.initialCode ?? null;
     const defaultCountry = initialCode ? (COUNTRY_BY_CODE[initialCode] ?? fallback) : fallback;
@@ -144,7 +175,7 @@ function renderSegment(
         min={segment.props?.min ?? 0}
         max={segment.props?.max ?? 100}
         step={segment.props?.step ?? 1}
-        formatValue={(v) => `$${v.toLocaleString()}`}
+        formatValue={(v) => `${resolveCurrencySymbol(controlValues)}${v.toLocaleString()}`}
         label={id}
         color={color}
       />

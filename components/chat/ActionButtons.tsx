@@ -14,6 +14,7 @@ import {
   MapTrifold,
 } from "@phosphor-icons/react";
 import { CONTROL_COLORS, pillBoxShadow } from "@/lib/inline-ui/colors";
+import { encodeActionPrompt } from "@/lib/chat/action-prompts";
 import type { AgentData } from "@/components/AgentPanel";
 import type { Country } from "@/components/inline-ui/CountryPicker";
 import { parseInlineUI } from "@/lib/inline-ui/parser";
@@ -140,7 +141,10 @@ export function ActionButtons({ agentData, controlValues, assistantText, onActio
     if (!agentData.itinerary) {
       buttons.push({
         label: 'Love it! Plan this trip',
-        prompt: `Plan my ${days}-day trip to ${destName} for ${travelers} ${travelers === 1 ? 'person' : 'people'}`,
+        prompt:
+          stayType
+            ? `Yes, ${destName} is the trip I want. Continue with the current plan for ${travelers} ${travelers === 1 ? 'traveler' : 'travelers'}, ${days} days, and ${stayType} lodging. Do not restart from scratch. Use the destination already selected and build the rest of the trip.`
+            : `Yes, ${destName} is the trip I want. Continue with the current plan for ${travelers} ${travelers === 1 ? 'traveler' : 'travelers'} over ${days} days. Do not restart from scratch. Use the destination already selected and build the rest of the trip.`,
         icon: <Heart weight="fill" className="w-3.5 h-3.5" />,
         colorIdx: 0,
       });
@@ -286,7 +290,7 @@ export function ActionButtons({ agentData, controlValues, assistantText, onActio
         return (
           <motion.button
             key={btn.label}
-            onClick={() => !isLoading && onAction(btn.prompt)}
+            onClick={() => !isLoading && onAction(encodeActionPrompt(btn.label, btn.prompt))}
             disabled={isLoading}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
             style={{

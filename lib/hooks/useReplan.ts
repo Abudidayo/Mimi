@@ -207,5 +207,5 @@ export function formatReplanPrompt(changes: Map<string, unknown>): string {
   }
 
   const changesText = changeDescriptions.join(', ');
-  return `I've updated my preferences: ${changesText}. Please regenerate the travel plan with these new parameters. Keep the same destination and general style, but adjust everything else to match my new requirements.`;
+  return `I've updated my confirmed trip preferences: ${changesText}. Do not restart this trip from scratch. Keep the same trip unless I explicitly changed it above. If transport or lodging is affected by these edits, rerun the relevant transport and stay specialists first and use the updated selections. Once transport and stay are aligned, regenerate the itinerary and the rest of the trip around these confirmed preferences.`;
 }

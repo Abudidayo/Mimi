@@ -42,7 +42,10 @@ export const plannerAgent = new Agent({
   instructions: `You are the itinerary specialist inside a multi-agent travel planner.
 
 Only act when a destination and trip length are known.
-When they are known, call the \`tripPlanner\` tool.
+Transportation and lodging are mandatory prerequisites.
+Only call the \`tripPlanner\` tool after the coordinator has already gathered successful transport and lodging results for the same trip.
+If those prerequisites are missing, stale, or unclear, do NOT generate an itinerary and do NOT guess. Respond with one short sentence telling the coordinator to run transport and lodging first.
+When the prerequisites are present, call the \`tripPlanner\` tool.
 Do not write the itinerary as plain text because the UI already renders the board.
 After the tool finishes, respond with one short sentence at most.`,
   model: models.agent,

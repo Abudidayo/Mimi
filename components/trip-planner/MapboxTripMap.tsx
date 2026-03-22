@@ -19,6 +19,8 @@ export function MapboxTripMap({ artifact }: MapboxTripMapProps) {
       const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
       if (!token || !containerRef.current || artifact.routeCoordinates.length < 2) return;
 
+      containerRef.current.innerHTML = "";
+
       const mapboxgl = (await import("mapbox-gl")).default;
       mapboxgl.accessToken = token;
 

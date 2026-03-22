@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Browser, CaretRight, CursorClick, Globe, Keyboard, SpinnerGap } from "@phosphor-icons/react";
+import {
+  Browser,
+  CaretRight,
+  CursorClick,
+  Globe,
+  Keyboard,
+  MagnifyingGlass,
+  WarningCircle,
+  XCircle,
+  SpinnerGap,
+} from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BrowserProgressEvent {
@@ -22,8 +32,38 @@ interface BrowserProgressRun {
   events: BrowserProgressEvent[];
 }
 
-function iconForMessage(message: string) {
-  const lower = message.toLowerCase();
+function normalizeEvent(message: string) {
+  const raw = message.trim();
+  if (!raw) return null;
+
+  let formatted = raw;
+  formatted = formatted.replace(/^Agent calling tool:\s*/i, "");
+  formatted = formatted.replace(/^act\s*/i, "");
+  formatted = formatted.replace(/^goto\s+/i, "Open ");
+  formatted = formatted.replace(/^ariaTree\s*$/i, "Scan the page");
+  formatted = formatted.replace(/\btextbox\b/gi, "field");
+  formatted = formatted.replace(/\binput\b/gi, "field");
+  formatted = formatted.replace(/\s+/g, " ").trim();
+
+  if (!formatted) return null;
+
+  const lower = formatted.toLowerCase();
+
+  if (lower.includes("shutdown supervisor unavailable")) {
+    return {
+      label: "Background cleanup is unavailable for this browser session",
+      icon: <WarningCircle weight="fill" className="h-4 w-4 text-amber-200" />,
+      tone: "warning",
+    } as const;
+  }
+
+  if (lower.includes("stop requested") || lower.includes("closing browser session")) {
+    return {
+      label: formatted.charAt(0).toUpperCase() + formatted.slice(1),
+      icon: <XCircle weight="fill" className="h-4 w-4 text-rose-200" />,
+      tone: "danger",
+    } as const;
+  }
 
   if (
     lower.includes(" type ") ||
@@ -31,43 +71,42 @@ function iconForMessage(message: string) {
     lower.includes("fill ") ||
     lower.includes("enter ")
   ) {
-    return <Keyboard weight="fill" className="h-3.5 w-3.5 text-violet-200" />;
+    return {
+      label: formatted.charAt(0).toUpperCase() + formatted.slice(1),
+      icon: <Keyboard weight="fill" className="h-4 w-4 text-violet-200" />,
+      tone: "input",
+    } as const;
   }
 
   if (lower.includes("click")) {
-    return <CursorClick weight="fill" className="h-3.5 w-3.5 text-sky-200" />;
+    return {
+      label: formatted.charAt(0).toUpperCase() + formatted.slice(1),
+      icon: <CursorClick weight="fill" className="h-4 w-4 text-sky-200" />,
+      tone: "action",
+    } as const;
   }
 
-  if (lower.includes("goto") || lower.includes("browserbase") || lower.includes("session")) {
-    return <Globe weight="fill" className="h-3.5 w-3.5 text-cyan-200" />;
+  if (lower.includes("scan the page") || lower.includes("observe") || lower.includes("aria")) {
+    return {
+      label: formatted.charAt(0).toUpperCase() + formatted.slice(1),
+      icon: <MagnifyingGlass weight="fill" className="h-4 w-4 text-emerald-200" />,
+      tone: "scan",
+    } as const;
   }
 
-  return <CaretRight weight="bold" className="h-3.5 w-3.5 text-emerald-200" />;
-}
-
-function formatEventMessage(message: string) {
-  let formatted = message.trim();
-
-  formatted = formatted.replace(/^Agent calling tool:\s*/i, "");
-  formatted = formatted.replace(/^act\s*/i, "");
-  formatted = formatted.replace(/^goto\s*/i, "Open ");
-  formatted = formatted.replace(/^ariaTree\s*$/i, "Scan the page");
-
-  if (/^type\s+['"].+['"]\s+into\s+/i.test(formatted)) {
-    formatted = formatted.replace(/^type\s+/i, "Type ");
-  } else if (/^type\s+/i.test(formatted)) {
-    formatted = formatted.replace(/^type\s+/i, "Enter ");
+  if (lower.includes("launching") || lower.includes("open ") || lower.includes("browserbase") || lower.includes("session")) {
+    return {
+      label: formatted.charAt(0).toUpperCase() + formatted.slice(1),
+      icon: <Globe weight="fill" className="h-4 w-4 text-cyan-200" />,
+      tone: "nav",
+    } as const;
   }
 
-  formatted = formatted.replace(/\btextbox\b/gi, "field");
-  formatted = formatted.replace(/\binput\b/gi, "field");
-  formatted = formatted.replace(/\s+/g, " ").trim();
-
-  if (formatted.length > 0) {
-    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
-  }
-
-  return formatted;
+  return {
+    label: formatted.charAt(0).toUpperCase() + formatted.slice(1),
+    icon: <CaretRight weight="bold" className="h-4 w-4 text-emerald-200" />,
+    tone: "default",
+  } as const;
 }
 
 export function BrowserTimeline({ active }: { active: boolean }) {
@@ -176,19 +215,35 @@ export function BrowserTimeline({ active }: { active: boolean }) {
 
           <div className="mt-3 space-y-2">
             <AnimatePresence initial={false}>
-              {run.events.slice(-8).map((event) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-start gap-2 rounded-2xl border border-white/8 bg-white/[0.04] px-3 py-2"
-                >
-                  <div className="mt-0.5">{iconForMessage(event.message)}</div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-white/90">{formatEventMessage(event.message)}</p>
-                  </div>
-                </motion.div>
-              ))}
+              {run.events
+                .slice(-10)
+                .map((event) => ({ event, normalized: normalizeEvent(event.message) }))
+                .filter(
+                  (
+                    item
+                  ): item is {
+                    event: BrowserProgressEvent;
+                    normalized: NonNullable<ReturnType<typeof normalizeEvent>>;
+                  } => Boolean(item.normalized)
+                )
+                .map(({ event, normalized }) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={`
+                      flex items-start gap-3 rounded-2xl border px-3 py-2
+                      ${normalized.tone === "warning" ? "border-amber-300/14 bg-amber-400/[0.06]" : ""}
+                      ${normalized.tone === "danger" ? "border-rose-300/14 bg-rose-400/[0.06]" : ""}
+                      ${normalized.tone !== "warning" && normalized.tone !== "danger" ? "border-white/8 bg-white/[0.04]" : ""}
+                    `}
+                  >
+                    <div className="mt-0.5">{normalized.icon}</div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium leading-relaxed text-white/90">{normalized.label}</p>
+                    </div>
+                  </motion.div>
+                ))}
             </AnimatePresence>
           </div>
         </motion.div>

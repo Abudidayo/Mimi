@@ -47,6 +47,65 @@ const destinationLocationSchema = z.object({
   longitude: z.number(),
 });
 
+const ORIGIN_AIRPORT_FALLBACKS: Record<string, z.infer<typeof airportLocationSchema>> = {
+  GB: {
+    code: 'LHR',
+    city: 'London',
+    airport: 'London Heathrow',
+    latitude: 51.47,
+    longitude: -0.4543,
+  },
+  'UNITED KINGDOM': {
+    code: 'LHR',
+    city: 'London',
+    airport: 'London Heathrow',
+    latitude: 51.47,
+    longitude: -0.4543,
+  },
+  UK: {
+    code: 'LHR',
+    city: 'London',
+    airport: 'London Heathrow',
+    latitude: 51.47,
+    longitude: -0.4543,
+  },
+  ENGLAND: {
+    code: 'LHR',
+    city: 'London',
+    airport: 'London Heathrow',
+    latitude: 51.47,
+    longitude: -0.4543,
+  },
+  LONDON: {
+    code: 'LHR',
+    city: 'London',
+    airport: 'London Heathrow',
+    latitude: 51.47,
+    longitude: -0.4543,
+  },
+  US: {
+    code: 'JFK',
+    city: 'New York',
+    airport: 'John F. Kennedy International Airport',
+    latitude: 40.6413,
+    longitude: -73.7781,
+  },
+  'UNITED STATES': {
+    code: 'JFK',
+    city: 'New York',
+    airport: 'John F. Kennedy International Airport',
+    latitude: 40.6413,
+    longitude: -73.7781,
+  },
+  FRANCE: {
+    code: 'CDG',
+    city: 'Paris',
+    airport: 'Charles de Gaulle Airport',
+    latitude: 49.0097,
+    longitude: 2.5479,
+  },
+};
+
 export const transportSchema = z.object({
   summary: z.string(),
   recommendedMode: z.enum(['air', 'train', 'bus', 'ferry', 'car', 'mixed']),
@@ -61,6 +120,61 @@ export const transportSchema = z.object({
 });
 
 export type FlightsData = z.infer<typeof transportSchema>;
+
+function normalizeOriginKey(origin: string): string {
+  return origin.trim().toUpperCase();
+}
+
+function resolveOriginFallback(origin: string) {
+  const normalized = normalizeOriginKey(origin);
+  if (ORIGIN_AIRPORT_FALLBACKS[normalized]) return ORIGIN_AIRPORT_FALLBACKS[normalized];
+
+  const simplified = normalized.split(/[,(]/)[0]?.trim();
+  if (simplified && ORIGIN_AIRPORT_FALLBACKS[simplified]) return ORIGIN_AIRPORT_FALLBACKS[simplified];
+
+  return undefined;
+}
+
+function airportLooksCompatibleWithOrigin(
+  airport: z.infer<typeof airportLocationSchema> | undefined,
+  origin: string
+): boolean {
+  if (!airport) return false;
+  const normalizedOrigin = normalizeOriginKey(origin);
+  const airportText = `${airport.code} ${airport.city} ${airport.airport}`.toUpperCase();
+
+  if (normalizedOrigin.includes('UNITED KINGDOM') || normalizedOrigin === 'GB' || normalizedOrigin === 'UK' || normalizedOrigin.includes('ENGLAND')) {
+    return /LHR|LGW|LONDON|HEATHROW|GATWICK|MANCHESTER|EDI|GLASGOW|STANSTED/.test(airportText);
+  }
+
+  if (normalizedOrigin.includes('UNITED STATES') || normalizedOrigin === 'US' || normalizedOrigin.includes('AMERICA')) {
+    return /JFK|NEW YORK|EWR|BOS|LAX|SFO|ORD|ATL/.test(airportText);
+  }
+
+  if (normalizedOrigin.includes('FRANCE')) {
+    return /CDG|ORY|PARIS/.test(airportText);
+  }
+
+  return true;
+}
+
+function alignTransportOrigin(data: FlightsData, origin: string): FlightsData {
+  const fallback = resolveOriginFallback(origin);
+  if (!fallback) return data;
+
+  const hasCompatibleOriginAirport = airportLooksCompatibleWithOrigin(data.originAirport, origin);
+  if (hasCompatibleOriginAirport) return data;
+
+  const arrivalCode = data.arrivalAirport?.code ?? data.route.split('->')[1]?.trim() ?? data.destinationLocation?.label ?? 'destination';
+  const arrivalCity = data.arrivalAirport?.city ?? data.destinationLocation?.label ?? 'destination';
+
+  return {
+    ...data,
+    originAirport: fallback,
+    route: `${fallback.code} -> ${arrivalCode}`,
+    summary: `Fly from ${fallback.city} ${fallback.code} to ${arrivalCity} for the most practical route from ${origin}.`,
+  };
+}
 
 export const flightsAgent = new Agent({
   id: 'flights-agent',
@@ -124,13 +238,14 @@ Return a multi-mode transport summary with:
 - bookingTip: one practical tip about saving money or choosing the right transport mode
 
 Rules:
+- The departure airport must be realistically inside the stated origin. If origin is United Kingdom, use a UK airport such as LHR or LGW, never JFK or any US airport.
 - Flights should be the most concrete and data-rich section
 - If a mode is unrealistic for this route, do not invent it
 - For train/bus/ferry/car, priceEstimate can be approximate and bookingHint can explain where to check
 - Local options should help the traveller once they arrive`,
   });
 
-  return result.output;
+  return alignTransportOrigin(result.output, origin);
 }
 
 export const getTransportOptionsTool = createTool({
