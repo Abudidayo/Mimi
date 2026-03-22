@@ -1,245 +1,223 @@
-# ✈️ AI Travel Planner
+# Mimi
 
-An intelligent travel planning assistant built for the AI London 2026 Hackathon (AI Agents Track). This application combines multi-agent AI systems with an innovative inline UI approach to create interactive, personalized travel itineraries.
+<img src="/assets/mimi-ballon.png" />
 
-![AI Travel Planner](https://img.shields.io/badge/AI-Travel%20Planner-blue?style=for-the-badge&logo=openai)
-![Next.js 15](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
 
-## 🌟 Key Features
+An agentic travel planner built for the AI Agents track.
 
-### 1. **Inline Generative UI**
-AI-generated messages contain interactive controls that users can adjust directly in the conversation:
-- Number steppers for travelers/nights
-- Price steppers for budget
-- Date pickers for departure dates
-- Country selectors
-- Sliders for ranges
-- Toggle chips and selects
+Mimi is based on a simple belief: the goal of autonomy is not to remove the user, but to remove the work. For consumer tasks like travel planning, fully eliminating the human is often the wrong experience because preferences, tradeoffs, and approvals are personal. Instead, Mimi combines multi-agent orchestration with generative UI to create a low-friction approval loop.
 
-**Syntax Example:**
-```
-Plan a {{+[nights]-}} night trip to {{::country[destination]}} for {{+[travelers]-}} travelers with a budget of {{+[$budget]-}} per person.
-```
+Specialist agents independently research destinations, transport, lodging, safety, packing, events, and itineraries. Then structured UI surfaces the right controls, cards, and trip artifacts at the right time so the user can guide the workflow without repeatedly restating everything in text.
 
-### 2. **Multi-Agent AI System (Mastra)**
-Five specialized agents work together under a supervisor coordinator:
+In the spirit of Steve Jobs' idea that good design starts with the customer experience and then works backward to the technology, Mimi is designed around decision clarity first and AI complexity second.
 
-- **Flight Scout** - Searches and compares flight options
-- **Hotel Hunter** - Finds optimally located accommodations
-- **Activity Finder** - Discovers activities and creates daily schedules
-- **Food Expert** - Recommends restaurants matching dietary needs
-- **Budget Optimizer** - Analyzes costs and suggests optimizations
+## Why this matters
 
-Each agent has:
-- Real Zod-validated tools
-- Mock data for demos
-- Production-ready structure
-- Delegation hooks for coordination
+Most AI travel tools still rely too heavily on chat. That creates three problems:
 
-### 3. **Drag-and-Drop Kanban Board**
-Reorganize your itinerary with ease:
-- Drag activities between days
-- Reorder within a single day
-- Edit activity details
-- Delete unwanted activities
-- Real-time time calculations
-- Warnings for overpacked days (>10 hours)
+- users have to keep rewriting preferences in text
+- the agent wastes tokens clarifying simple choices
+- approval becomes slow and high-friction
 
-### 4. **Smart Replanning**
-When you adjust inline controls, the AI automatically regenerates your plan:
-- Debounced updates (1.5s delay)
-- Maintains conversation context
-- Only regenerates affected sections
-- Visual feedback with updating indicator
+Mimi solves that with:
 
-### 5. **Calendar Export**
-Export your complete itinerary:
-- Generates standard ICS files
-- Works with Google Calendar, Apple Calendar, Outlook
-- Includes all activity details, times, and locations
+- multi-agent orchestration for the heavy lifting
+- inline generative UI for quick edits and approvals
+- planner artifacts for seeing the whole trip in one place
+- browser-use execution for live reservation attempts
 
-### 6. **Rich Agent UI Components**
-Specialized visualizations for each agent's output:
-- Flight comparison cards
-- Hotel recommendations with maps
-- Daily timeline views
-- Restaurant lists with filters
-- Budget breakdown charts
+The user stays in the loop only where human judgment matters. The agents handle the rest.
 
-## 🚀 Getting Started
+## What Mimi does
+
+- Suggests destinations and cities when the user starts broadly
+- Collects missing trip constraints with inline controls instead of long back-and-forth chat
+- Orchestrates specialist agents for:
+  - transportation
+  - lodging
+  - safety
+  - packing
+  - discovery and events
+  - itinerary planning
+- Builds a structured trip artifact in a planner drawer
+- Lets users edit plans through low-friction UI instead of retyping prompts
+- Attempts live browser-backed reservation workflows and stops before checkout
+- Streams browser activity so users can watch the agent work
+
+## Core product idea
+
+Mimi is not "chat-first AI."
+
+It is:
+
+- agent-first orchestration
+- UI-assisted decision making
+- low-friction human approval
+
+Generative UI is not cosmetic here. It is how the app reduces the cost of human approval. Instead of asking users to repeatedly describe or restate preferences in plain text, the agent renders the right controls and artifacts for the decision at hand.
+
+That means the system can:
+
+- collect missing constraints
+- present tradeoffs visually
+- let users edit intent directly
+- confirm agent decisions with minimal effort
+- move from conversation to action faster
+
+## Architecture
+
+### Orchestration
+
+Mimi uses a supervisor-driven multi-agent setup built with Mastra.
+
+Specialist agents handle different parts of the workflow, including:
+
+- suggestions
+- transport
+- lodging
+- safety
+- weather
+- packing
+- events and discovery
+- itinerary planning
+- booking
+
+The supervisor decides which specialists to invoke, gathers missing trip information, and composes the results into a coherent plan.
+
+### Generative UI
+
+Mimi uses two forms of generative UI:
+
+- inline controls inside assistant responses
+- richer rendered components like destination cards, transport cards, stay cards, planner views, and booking progress
+
+This reduces text dependence, lowers token usage, and makes approvals feel much more natural.
+
+### Browser use
+
+For high-agency demos, Mimi can run browser automation through Stagehand.
+
+That enables the app to:
+
+- open travel providers
+- fill trip details
+- navigate booking flows
+- show live browser progress
+- stop on user request
+- halt before final checkout/payment
+
+## Features
+
+- Inline generative controls for destination, nationality, dates, travellers, budget, and stay type
+- Multi-agent orchestration for end-to-end trip planning
+- Interactive transport and lodging selection
+- Trip planner drawer with map, timeline, transport, stay, and itinerary sections
+- Browser-use timeline with readable step logs
+- Stop control for active browser runs
+- Persisted chat sessions
+- Voice overlay support from the merged voice work
+
+## Tech stack
+
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- Radix UI
+- Mastra
+- Vercel AI SDK
+- Zod
+- Convex
+- Mapbox GL
+- Stagehand
+
+## Getting started
 
 ### Prerequisites
+
 - Node.js 20+
-- npm or yarn
-- (Optional) Anthropic API key for real AI responses
+- npm
 
-### Installation
+### Install
 
-1. Clone the repository:
-```bash
-cd travel-planner
-```
-
-2. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
+### Environment
+
+Create a `.env.local` and add the keys you want to use.
+
+Typical app/runtime keys:
+
 ```bash
-cp .env.example .env.local
+OPENROUTER_API_KEY=
+ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=
 ```
 
-Add your Anthropic API key to `.env.local`:
-```
-ANTHROPIC_API_KEY=your_api_key_here
+Optional browser execution keys:
+
+```bash
+BB_API_KEY=
+BB_PROJECT_ID=
+STAGEHAND_ENV=LOCAL
+STAGEHAND_MODEL=openai/gpt-4o-mini
+STAGEHAND_AGENT_MODEL=openai/gpt-4o-mini
+STAGEHAND_EXECUTION_MODEL=openai/gpt-4o-mini
 ```
 
-4. Run the development server:
+Notes:
+
+- `STAGEHAND_ENV=LOCAL` lets you watch the agent use your local browser
+- Browserbase mode uses remote sessions instead
+- Mapbox is required for the planner map
+
+### Run the app
+
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000)
+Then open:
 
-### Demo Mode
-The app works without an API key! It will use pre-generated demo responses to showcase all features.
-
-## 📁 Project Structure
-
-```
-travel-planner/
-├── app/
-│   ├── page.tsx                 # Main chat interface
-│   ├── itinerary/page.tsx       # Kanban board demo
-│   └── api/plan-trip/route.ts   # AI agent endpoint
-├── components/
-│   ├── inline-ui/               # Interactive inline controls
-│   │   ├── NumberStepper.tsx
-│   │   ├── PriceStepper.tsx
-│   │   ├── DatePicker.tsx
-│   │   ├── CountryPicker.tsx
-│   │   ├── Slider.tsx
-│   │   ├── Select.tsx
-│   │   ├── ToggleChip.tsx
-│   │   └── VotingButtons.tsx
-│   ├── agent-ui/                # Agent output components
-│   │   ├── FlightComparison.tsx
-│   │   ├── HotelCard.tsx
-│   │   ├── DailyTimeline.tsx
-│   │   ├── RestaurantList.tsx
-│   │   └── BudgetBreakdown.tsx
-│   └── kanban/                  # Drag-and-drop board
-│       ├── KanbanBoard.tsx
-│       ├── KanbanColumn.tsx
-│       └── KanbanCard.tsx
-├── lib/
-│   ├── agents/                  # Mastra AI agents
-│   │   ├── travel-coordinator.ts
-│   │   ├── flight-scout.ts
-│   │   ├── hotel-hunter.ts
-│   │   ├── activity-finder.ts
-│   │   ├── food-expert.ts
-│   │   └── budget-optimizer.ts
-│   ├── inline-ui/
-│   │   ├── parser.tsx           # Parses inline syntax
-│   │   └── renderer.tsx         # Renders components
-│   ├── hooks/
-│   │   └── useReplan.ts         # Replan logic
-│   └── utils/
-│       └── calendar-export.ts   # ICS file generation
-└── public/
+```bash
+http://localhost:3000
 ```
 
-## 🎯 Tech Stack
+## Demo framing
 
-- **Framework:** Next.js 15 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS v4
-- **AI Framework:** Mastra (multi-agent orchestration)
-- **AI Provider:** Anthropic Claude 3.5 Sonnet
-- **AI SDK:** Vercel AI SDK
-- **Drag & Drop:** @dnd-kit
-- **UI Components:** Radix UI
-- **Animations:** Framer Motion
-- **Icons:** Phosphor Icons
-- **Date Handling:** date-fns
+The strongest way to think about Mimi is:
 
-## 🎨 Design Philosophy
+> True autonomy in consumer software does not mean excluding the user. It means the system independently does the heavy lifting, makes informed decisions, and only involves the user at the points where judgment, taste, or consent actually matter.
 
-### Clean Blue Theme
-- No flashy gradients or animated backgrounds
-- Professional, minimalist aesthetic
-- ChatGPT-style interface
-- Glass morphism effects
-- Smooth, subtle animations
+That is exactly what Mimi is built for.
 
-### Inline UI Innovation
-Unlike traditional chatbots with separate forms, AI-generated controls appear **inside** the conversation:
-- More natural and conversational
-- Immediate visual feedback
-- No context switching
-- Adjustments trigger smart replanning
+## Project status
 
-## 🔧 Configuration
+Current strengths:
 
-### Agent Instructions
-Each agent has customizable instructions in `lib/agents/*.ts`. Modify these to change:
-- Output format
-- Delegation strategy
-- Tool usage patterns
-- Response style
+- real multi-agent orchestration
+- structured UI-driven approvals
+- browser-backed execution path
+- live booking progress visibility
+- editable trip artifacts
 
-### Inline UI Syntax
-Add new control types by:
-1. Creating component in `components/inline-ui/`
-2. Adding pattern to `lib/inline-ui/parser.tsx`
-3. Adding renderer in `lib/inline-ui/renderer.tsx`
+Current focus areas:
 
-Example pattern:
-```typescript
-const patterns = {
-  myControl: /\{\{::mycontrol\[([a-zA-Z0-9_]+)\]\}\}/g,
-};
-```
+- making supervisor routing more consistently parallel
+- polishing the trip planner drawer and map experience
+- strengthening browser happy paths and recovery behavior
 
-## 📊 Current Progress
+## Acknowledgments
 
-### Completed (80%)
-✅ Foundation & setup
-✅ All 8 inline UI components
-✅ All 5 agent UI components
-✅ Complete multi-agent system
-✅ Kanban board with drag-drop
-✅ Calendar export (ICS)
-✅ Smart replanning
-✅ Mock data for demos
+- [Mastra](https://mastra.ai)
+- [Stagehand](https://stagehand.dev)
+- [Vercel AI SDK](https://sdk.vercel.ai)
+- [Mapbox](https://www.mapbox.com)
+- [Radix UI](https://www.radix-ui.com)
 
-### In Progress / Future
-🔄 Real-time collaboration (Liveblocks)
-🔄 Comprehensive testing
-🔄 Production deployment
+## License
 
-## 🤝 Contributing
-
-This project was built for the AI London 2026 Hackathon. Contributions, issues, and feature requests are welcome!
-
-## 📝 License
-
-MIT License - feel free to use this project for your own hackathons or learning!
-
-## 🙏 Acknowledgments
-
-- Built with [Mastra](https://mastra.ai) - Multi-agent orchestration
-- Powered by [Claude 3.5 Sonnet](https://anthropic.com)
-- UI components from [Radix UI](https://radix-ui.com)
-- Drag-and-drop by [@dnd-kit](https://dndkit.com)
-
-## 📞 Contact
-
-Built by John Micheal for AI London 2026 Hackathon
-
----
-
-**Made with ❤️ for the AI Agents track at AI London 2026**
+MIT
