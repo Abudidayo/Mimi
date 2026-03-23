@@ -343,7 +343,7 @@ export function ChatExperience({
 
   return (
     <div
-      className="flex flex-col h-screen overflow-hidden"
+      className="flex min-h-0 flex-col overflow-hidden h-[100dvh] max-h-[100dvh]"
       style={
         isChat
           ? {
@@ -416,7 +416,7 @@ export function ChatExperience({
           } : undefined}
         />
         {isChat && (
-          <div className="sticky top-0 z-20 px-4 pt-4">
+          <div className="sticky top-0 z-20 px-3 pt-3 sm:px-4 sm:pt-4">
             <div className="mx-auto flex max-w-5xl justify-start">
               <button
                 type="button"
@@ -459,7 +459,7 @@ export function ChatExperience({
         </AnimatePresence>
 
         {isChat && (
-          <div className="max-w-5xl mx-auto px-4 pt-6 pb-24 space-y-6">
+          <div className="mx-auto max-w-5xl space-y-6 px-3 pt-4 pb-28 sm:px-4 sm:pt-6 sm:pb-24">
             <AnimatePresence initial={false}>
               {messages.map((message, msgIdx) => (
                 <div

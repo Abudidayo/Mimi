@@ -288,7 +288,7 @@ export function AgentPanel({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-4 space-y-2"
+      className="mt-4 w-full min-w-0 space-y-2"
     >
       {/* Agent pill row */}
       <div className="flex flex-wrap gap-1.5">
@@ -409,7 +409,7 @@ export function AgentPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={{ delay: 0.1 }}
-            className="mt-4 -mx-2"
+            className="mt-4 -mx-1 min-w-0 sm:-mx-2"
           >
             <KanbanBoard
               schedule={data.itinerary}

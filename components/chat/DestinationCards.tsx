@@ -168,7 +168,7 @@ export function DestinationCards({ data, onAction }: DestinationCardsProps) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="mt-3 grid grid-cols-2 gap-3"
+      className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2"
     >
       {data.suggestions.map((s, i) => (
         <DestinationCard

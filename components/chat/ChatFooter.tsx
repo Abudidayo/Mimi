@@ -48,11 +48,11 @@ export function ChatFooter({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className="flex justify-end gap-3"
+        className="flex justify-end gap-3 max-sm:min-w-0 max-sm:w-full max-sm:flex-wrap max-sm:gap-2"
       >
         <motion.div
           className={cn(
-            "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-white backdrop-blur-[12px]",
+            "flex flex-wrap items-center gap-3 rounded-2xl px-3 py-2.5 text-white backdrop-blur-[12px] max-sm:min-w-0 max-sm:max-w-full max-sm:gap-2",
           )}
           initial={{ scale: 0.98 }}
           animate={{ scale: 1 }}
@@ -113,27 +113,19 @@ export function ChatFooter({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className="flex justify-end gap-3"
+        className="flex justify-end gap-3 max-sm:min-w-0 max-sm:flex-wrap max-sm:items-end max-sm:gap-2"
       >
         <motion.div
           className={cn(
-            "rounded-2xl px-5 py-3 text-white shadow-sm",
-            "border border-white/15 backdrop-blur-[12px]",
+            "min-w-0 w-[360px] rounded-2xl border border-white/15 px-5 py-3 text-white shadow-sm backdrop-blur-[12px] max-sm:w-full max-sm:max-w-[min(648px,calc(100vw-2.5rem))] max-sm:px-4",
+            isFocused && "w-[min(648px,calc(100vw-3rem))] max-sm:w-full"
           )}
-          animate={{
-            width: isFocused ? 648 : 360,
-          }}
-          transition={{
-            type: "spring",
-            duration: 0.5,
-            bounce: 0.18,
-            ease: "easeInOut",
-          }}
+          initial={{ scale: 0.98 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 360, damping: 26 }}
           style={{
             background:
               "linear-gradient(135deg, rgba(61,126,204,0.55), rgba(29,77,158,0.55))",
-            maxWidth: "90%",
-            minWidth: "320px",
           }}
         >
           <form onSubmit={onSubmit} className="relative">
@@ -213,9 +205,10 @@ export function ChatFooter({
         borderTop: "1px solid rgba(255,255,255,0.1)",
         background: "rgba(16,40,100,0.45)",
         backdropFilter: "blur(20px)",
+        paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
       }}
     >
-      <div className="max-w-3xl mx-auto px-4 py-3">
+      <div className="mx-auto max-w-3xl px-4 py-3 max-sm:px-3">
         <form onSubmit={onSubmit} className="relative">
           <input
             type="text"
@@ -224,9 +217,9 @@ export function ChatFooter({
             placeholder="Ask mimi anything..."
             disabled={isLoading}
             className={cn(
-              "w-full pl-5 pr-12 py-3 rounded-full",
+              "w-full rounded-full py-3 pl-5 pr-12",
               "bg-white text-gray-800 placeholder:text-gray-400",
-              "text-sm font-medium",
+              "text-sm font-medium max-sm:text-base",
               "focus:outline-none focus:ring-4 focus:ring-blue-300/40",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               "transition-all duration-200",

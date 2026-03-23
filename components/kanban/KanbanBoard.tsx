@@ -195,11 +195,11 @@ export function KanbanBoard({ schedule: initialSchedule, onScheduleChange, onExp
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full min-w-0">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="mb-1 text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
             Your Itinerary
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -207,10 +207,10 @@ export function KanbanBoard({ schedule: initialSchedule, onScheduleChange, onExp
           </p>
         </div>
 
-        <div ref={exportRef} className="relative">
+        <div ref={exportRef} className="relative shrink-0 self-stretch sm:self-auto">
           <button
             onClick={() => setExportMenu((v) => !v)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 sm:w-auto"
           >
             <Download className="w-5 h-5" />
             Export
@@ -315,7 +315,7 @@ export function KanbanBoard({ schedule: initialSchedule, onScheduleChange, onExp
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="-mx-1 flex min-w-0 gap-3 overflow-x-auto pb-4 pl-1 pr-1 sm:gap-4">
           {schedule.map((day) => (
             <KanbanColumn
               key={day.day}

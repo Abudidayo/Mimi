@@ -154,15 +154,15 @@ export function TripPlannerDrawer({
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: "100%", opacity: 0.98 }}
                 transition={{ type: "spring", stiffness: 220, damping: 28 }}
-                className="fixed inset-y-3 right-3 z-50 w-[min(1180px,calc(100vw-24px))] overflow-hidden rounded-[26px] border border-white/12 bg-[linear-gradient(180deg,#1a1a1a_0%,#141414_40%,#111111_100%)] shadow-[0_30px_120px_rgba(0,0,0,0.55)]"
+                className="fixed inset-0 z-50 flex max-h-dvh w-full flex-col overflow-hidden rounded-none border border-white/12 bg-[linear-gradient(180deg,#1a1a1a_0%,#141414_40%,#111111_100%)] shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:inset-y-3 sm:right-3 sm:left-auto sm:w-[min(1180px,calc(100vw-24px))] sm:rounded-[26px]"
               >
-                <div className="flex h-full flex-col">
-                  <div className="flex items-start justify-between border-b border-white/8 px-8 py-7">
-                    <div>
-                      <Dialog.Title className="text-[46px] font-semibold leading-[1.02] text-white">
+                <div className="flex h-full min-h-0 flex-col pt-[env(safe-area-inset-top,0px)] sm:pt-0">
+                  <div className="flex items-start justify-between gap-3 border-b border-white/8 px-4 py-4 sm:px-8 sm:py-7">
+                    <div className="min-w-0 pr-2">
+                      <Dialog.Title className="text-2xl font-semibold leading-tight text-white sm:text-[46px] sm:leading-[1.02]">
                         {artifact.title}
                       </Dialog.Title>
-                      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[20px] text-white/72">
+                      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/72 sm:mt-4 sm:gap-x-5 sm:text-[20px]">
                         <span className="inline-flex items-center gap-2">
                           <CalendarBlank weight="regular" className="h-5 w-5" />
                           {artifact.dateRangeLabel}
@@ -180,13 +180,13 @@ export function TripPlannerDrawer({
                     </div>
 
                     <Dialog.Close asChild>
-                      <button className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/80">
-                        <X weight="bold" className="h-6 w-6" />
+                      <button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/80 sm:h-14 sm:w-14">
+                        <X weight="bold" className="h-5 w-5 sm:h-6 sm:w-6" />
                       </button>
                     </Dialog.Close>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto px-8 py-7">
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-8 sm:py-7">
                     <div className="space-y-6">
                       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px_280px]">
                         <MapboxTripMap artifact={artifact} />
@@ -195,17 +195,17 @@ export function TripPlannerDrawer({
                           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
                             Trip total
                           </p>
-                          <p className="mt-4 text-[34px] font-semibold text-white">
+                          <p className="mt-3 text-2xl font-semibold text-white sm:mt-4 sm:text-[34px]">
                             {artifact.totalEstimate ? `~£${artifact.totalEstimate.toLocaleString()}` : "TBC"}
                           </p>
-                          <p className="mt-2 text-lg text-white/55">Flights + stay estimate</p>
+                          <p className="mt-2 text-base text-white/55 sm:text-lg">Flights + stay estimate</p>
                         </div>
 
                         <div className={panelClassName("p-6")}>
                           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
                             Trip setup
                           </p>
-                          <div className="mt-4 space-y-4 text-[18px] text-white/76">
+                          <div className="mt-4 space-y-3 text-base text-white/76 sm:space-y-4 sm:text-[18px]">
                             <p>Stay type {artifact.stayType ?? "pending"}</p>
                             <p>{selectedFlight?.airline ?? "Transport pending"}</p>
                             <p>{artifact.selectedLodging?.name ?? "Stay pending"}</p>
@@ -230,7 +230,7 @@ export function TripPlannerDrawer({
                               </div>
 
                               <div className="min-w-[160px] pt-1">
-                                <p className="text-[30px] font-semibold leading-tight text-white">{item.title}</p>
+                                <p className="text-lg font-semibold leading-tight text-white sm:text-[30px]">{item.title}</p>
                                 <div className="mt-2 flex items-center gap-2">
                                   <span className={cn("rounded-full border px-3 py-1 text-xs font-semibold", timelineMeta[item.kind].accent)}>
                                     {timelineMeta[item.kind].label}
@@ -249,46 +249,54 @@ export function TripPlannerDrawer({
 
                       {selectedFlight && artifact.flights && (
                         <div className={panelClassName("p-6")}>
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-3">
-                                <p className="text-sm font-semibold text-white/78">{selectedFlight.airline}</p>
+                          <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                            <div className="min-w-0 w-full flex-1">
+                              <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-white/78 sm:flex-none">
+                                  {selectedFlight.airline}
+                                </p>
                                 {darkPill(selectedFlight.stops === 0 ? "Direct" : `${selectedFlight.stops} stop${selectedFlight.stops > 1 ? "s" : ""}`)}
                               </div>
 
-                              <div className="mt-6 flex items-end gap-6">
-                                <div>
-                                  <p className="text-[38px] font-semibold leading-none text-white">
+                              <div className="mt-6 grid w-full min-w-0 grid-cols-[minmax(0,1fr)_minmax(4.5rem,1.2fr)_minmax(0,1fr)] items-end gap-x-2 gap-y-2 sm:gap-x-4">
+                                <div className="min-w-0">
+                                  <p className="text-2xl font-semibold leading-none text-white sm:text-[38px]">
                                     {artifact.flights.originAirport?.code ?? "ORG"}
                                   </p>
-                                  <p className="mt-2 text-base text-white/58">{artifact.dates?.from ?? artifact.dateRangeLabel}</p>
+                                  <p className="mt-2 wrap-break-word text-sm leading-snug text-white/58 sm:text-base">
+                                    {artifact.dates?.from ?? artifact.dateRangeLabel}
+                                  </p>
                                 </div>
 
-                                <div className="min-w-[220px] flex-1 px-2 pb-3">
-                                  <p className="text-center text-base text-white/70">{selectedFlight.duration}</p>
+                                <div className="min-w-0 px-0.5 pb-2 sm:px-2 sm:pb-3">
+                                  <p className="text-center text-xs text-white/70 sm:text-base">{selectedFlight.duration}</p>
                                   <div className="relative mt-2">
                                     <div className="h-2 rounded-full bg-white/18" />
                                     <div className="absolute inset-x-0 -top-3 flex justify-center text-white">
-                                      <AirplaneTilt weight="fill" className="h-7 w-7 rotate-90" />
+                                      <AirplaneTilt weight="fill" className="h-6 w-6 rotate-90 sm:h-7 sm:w-7" />
                                     </div>
                                   </div>
-                                  <p className="mt-2 text-center text-sm text-white/58">
+                                  <p className="mt-2 text-center text-xs text-white/58 sm:text-sm">
                                     {selectedFlight.stops === 0 ? "nonstop" : `${selectedFlight.stops} stop${selectedFlight.stops > 1 ? "s" : ""}`}
                                   </p>
                                 </div>
 
-                                <div className="text-right">
-                                  <p className="text-[38px] font-semibold leading-none text-white">
+                                <div className="min-w-0 text-right">
+                                  <p className="text-2xl font-semibold leading-none text-white sm:text-[38px]">
                                     {artifact.flights.arrivalAirport?.code ?? "DST"}
                                   </p>
-                                  <p className="mt-2 text-base text-white/58">{artifact.dates?.to ?? artifact.dateRangeLabel}</p>
+                                  <p className="mt-2 wrap-break-word text-sm leading-snug text-white/58 sm:text-base">
+                                    {artifact.dates?.to ?? artifact.dateRangeLabel}
+                                  </p>
                                 </div>
                               </div>
                             </div>
 
-                            <div className="shrink-0 text-right">
-                              <p className="text-[34px] font-semibold text-white">~£{selectedFlight.price.toLocaleString()}</p>
-                              <p className="text-base text-white/48">per person</p>
+                            <div className="shrink-0 border-t border-white/10 pt-4 text-right sm:border-t-0 sm:pt-0">
+                              <p className="text-2xl font-semibold text-white sm:text-[34px]">
+                                ~£{selectedFlight.price.toLocaleString()}
+                              </p>
+                              <p className="text-sm text-white/48 sm:text-base">per person</p>
                             </div>
                           </div>
                         </div>
@@ -414,7 +422,7 @@ export function TripPlannerDrawer({
                                         </span>
                                         {day.date && <span className="text-sm text-white/56">{day.date}</span>}
                                       </div>
-                                      <p className="mt-3 text-[28px] font-semibold leading-tight text-white">
+                                      <p className="mt-3 text-xl font-semibold leading-tight text-white sm:text-[28px]">
                                         {day.theme ?? day.activities[0]?.name ?? `Day ${day.day}`}
                                       </p>
                                     </div>
@@ -435,11 +443,11 @@ export function TripPlannerDrawer({
                     </div>
                   </div>
 
-                  <div className="border-t border-white/10 bg-[#141414]/95 px-8 py-5 backdrop-blur-md">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-base text-white/54">Ready when you are</p>
-                        <p className="text-[40px] font-semibold text-white">
+                  <div className="border-t border-white/10 bg-[#141414]/95 px-4 py-4 backdrop-blur-md pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:px-8 sm:py-5 sm:pb-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                      <div className="min-w-0">
+                        <p className="text-sm text-white/54 sm:text-base">Ready when you are</p>
+                        <p className="text-3xl font-semibold text-white sm:text-[40px]">
                           {artifact.totalEstimate ? `~£${artifact.totalEstimate.toLocaleString()}` : "Plan looks good"}
                         </p>
                       </div>
@@ -448,7 +456,7 @@ export function TripPlannerDrawer({
                         onClick={handlePrimaryClick}
                         disabled={!onPrimaryAction}
                         className={cn(
-                          "inline-flex items-center gap-3 rounded-full px-7 py-4 text-xl font-semibold text-white",
+                          "inline-flex w-full shrink-0 items-center justify-center gap-3 rounded-full px-6 py-3.5 text-base font-semibold text-white sm:w-auto sm:px-7 sm:py-4 sm:text-xl",
                           onPrimaryAction
                             ? "border border-white/14 bg-[linear-gradient(180deg,#2e2e2e,#1c1c1c)] shadow-[0_14px_32px_rgba(0,0,0,0.4)] hover:bg-[linear-gradient(180deg,#363636,#222)]"
                             : "bg-[#d7d7df]"

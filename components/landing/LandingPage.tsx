@@ -98,7 +98,7 @@ export function LandingPage({
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.4 }}
-      className="relative w-full min-h-full flex flex-col items-center justify-center px-4 overflow-hidden"
+      className="relative flex min-h-full w-full flex-col items-center justify-center overflow-hidden px-4 max-sm:pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] max-sm:pt-[max(1.25rem,env(safe-area-inset-top,0px))]"
       onMouseMove={handleMouseMove}
     >
       {/* ── Star field ── */}
@@ -155,11 +155,14 @@ export function LandingPage({
 
       {/* ── Ambient glow ── */}
       <div
-        className="absolute pointer-events-none"
+        className="pointer-events-none absolute h-[220px] w-[600px] max-sm:h-40 max-sm:w-[min(600px,92vw)]"
         style={{
-          top: "30%", left: "50%", transform: "translate(-50%, -50%)",
-          width: "600px", height: "220px", borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(255,120,90,0.12) 0%, transparent 70%)",
+          top: "30%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse, rgba(255,120,90,0.12) 0%, transparent 70%)",
           filter: "blur(20px)",
         }}
       />
@@ -169,12 +172,13 @@ export function LandingPage({
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 text-start mb-10 select-none"
+        className="relative z-10 mb-10 select-none text-start max-sm:mb-5 max-sm:flex max-sm:w-full max-sm:max-w-[min(100%,28rem)] max-sm:flex-col max-sm:items-center max-sm:text-center"
       >
-        <p className="text-white/75 text-2xl font-semibold font-fredoka -rotate-8">
+        <p className="-rotate-8 font-fredoka text-2xl font-semibold text-white/75 max-sm:text-lg">
           Travel with
         </p>
         <motion.div
+          className="max-sm:w-full"
           animate={{ rotate: [-4, 4, -4] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         >
@@ -183,7 +187,8 @@ export function LandingPage({
             alt="mimi"
             width={3150}
             height={1334}
-            className="w-full h-80 mx-auto"
+            priority
+            className="mx-auto h-80 w-full max-sm:h-[clamp(7.5rem,36vw,10rem)] max-sm:max-w-[min(100%,24rem)] max-sm:object-contain"
           />
         </motion.div>
       </motion.div>
@@ -195,7 +200,7 @@ export function LandingPage({
         transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
         className="relative z-10 w-full max-w-lg"
       >
-        <div className="mb-5">
+        <div className="mb-5 max-sm:mb-4">
           <form onSubmit={onSubmit} className="relative min-w-0">
             <input
               type="text"
@@ -204,7 +209,7 @@ export function LandingPage({
               placeholder="Where do you want to go?"
               disabled={isLoading}
               className={cn(
-                "w-full pl-6 pr-16 py-4 rounded-full",
+                "w-full rounded-full py-4 pl-6 pr-16 max-sm:min-h-12 max-sm:py-3.5 max-sm:pl-5 max-sm:pr-14",
                 "bg-white text-gray-800 placeholder:text-gray-400",
                 "text-base font-medium",
                 "focus:outline-none focus:ring-4 focus:ring-blue-300/40",

@@ -188,9 +188,11 @@ function toMapPoint(source: MapPointSource | undefined): TripMapPoint | null {
 
 function pickSelectedFlight(flights: FlightsData | undefined, selected: SelectedFlightOption | undefined) {
   if (!flights) return selected;
-  if (!selected) return flights.flights[0];
+  const flightList = flights.flights;
+  const flightsArray = Array.isArray(flightList) ? flightList : [];
+  if (!selected) return flightsArray[0];
   return (
-    flights.flights.find(
+    flightsArray.find(
       (option) =>
         option.airline === selected.airline &&
         option.departTime === selected.departTime &&
@@ -202,9 +204,11 @@ function pickSelectedFlight(flights: FlightsData | undefined, selected: Selected
 
 function pickSelectedLodging(lodging: LodgingData | undefined, selected: SelectedLodgingOption | undefined) {
   if (!lodging) return selected;
-  if (!selected) return lodging.options[0];
+  const optionList = lodging.options;
+  const options = Array.isArray(optionList) ? optionList : [];
+  if (!selected) return options[0];
   return (
-    lodging.options.find(
+    options.find(
       (option) =>
         option.name === selected.name &&
         option.provider === selected.provider &&

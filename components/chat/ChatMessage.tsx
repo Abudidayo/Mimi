@@ -69,7 +69,10 @@ export function ChatMessage({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className={cn('flex gap-3', message.role === 'user' ? 'justify-end' : 'justify-start')}
+      className={cn(
+        "flex w-full min-w-0 gap-2 sm:gap-3",
+        message.role === "user" ? "justify-end" : "justify-start"
+      )}
     >
       {message.role === 'assistant' && (
         <div
@@ -85,8 +88,9 @@ export function ChatMessage({
 
       <div
         className={cn(
-          'max-w-[85%]',
-          message.role === 'user' ? 'rounded-2xl px-4 py-3 text-white shadow-sm' : 'py-1 min-w-0'
+          message.role === "user"
+            ? "max-w-[min(85%,20rem)] rounded-2xl px-3 py-3 text-white shadow-sm sm:max-w-[85%] sm:px-4"
+            : "min-w-0 w-0 flex-1 py-1 sm:max-w-[min(100%,52rem)] sm:w-auto sm:flex-none"
         )}
         style={
           message.role === 'user'
